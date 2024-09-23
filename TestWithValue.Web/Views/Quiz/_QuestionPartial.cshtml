@@ -1,0 +1,57 @@
+﻿@using TestWithValue.Domain.ViewModels.Question
+@model ShowQuestionViewModel
+
+@{
+
+    ViewBag.Title = "آزمون";
+}
+
+
+
+<div id="questionContainer">
+    <!-- نمایش متن سوال -->
+    <p>@Model.QuestionText</p>
+
+    <!-- فرم برای ثبت پاسخ -->
+    <form id="quizForm" method="post">
+        <div>
+            <input type="radio" name="answer" value="Yes" id="yesAnswer" />
+            <label for="yesAnswer">بله</label>
+        </div>
+        <div>
+            <input type="radio" name="answer" value="No" id="noAnswer" />
+            <label for="noAnswer">خیر</label>
+        </div>
+
+        <!-- ارسال شناسه سوال به صورت hidden -->
+        <input type="hidden" name="questionId" value="@Model.QuestionId" />
+    </form>
+
+    <!-- دکمه‌های قبلی و بعدی -->
+    <div>
+        @if (Model.CurrentQuestionIndex > 0)
+        {
+            <button id="previousQuestion" onclick="loadQuestion(@Model.CurrentQuestionIndex - 1)">سوال قبلی</button>
+        }
+
+        @if (Model.CurrentQuestionIndex < @ViewBag.TotalQuestions - 1)
+        {
+            <button id="nextQuestion" onclick="submitAndLoadNextQuestion(@Model.CurrentQuestionIndex + 1)">سوال بعدی</button>
+        }
+        else
+        {
+            <!-- دکمه ثبت نهایی و مشاهده نتیجه در سوال آخر -->
+            <button id="submitQuiz" onclick="submitQuiz()">ثبت جواب سوالات و دیدن نتیجه آزمون</button>
+        }
+    </div>
+</div>
+<div>
+    <span id="timer"></span> <!-- تایمر -->
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+@section Scripts {
+
+    
+}
