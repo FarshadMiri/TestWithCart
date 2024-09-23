@@ -14,4 +14,9 @@
     <ProjectReference Include="..\TestWithValue.Domain\TestWithValue.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Services%27Interface\" />
+    <Folder Include="Services\Services\" />
+  </ItemGroup>
+
 </Project>

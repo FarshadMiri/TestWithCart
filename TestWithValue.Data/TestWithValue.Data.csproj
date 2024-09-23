@@ -23,4 +23,8 @@
     <ProjectReference Include="..\TestWithValue.Application\TestWithValue.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="SeedData\" />
+  </ItemGroup>
+
 </Project>

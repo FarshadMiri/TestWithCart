@@ -15,7 +15,5 @@ namespace TestWithValue.Domain.Enitities
         public DateTime CreatedDateTime { get; set; }
         public DateTime UpdatedDateTime { get; set; }
 
-        // رابطه یک به چند با Answer
-        public ICollection<Tbl_Answer> Answers { get; set; }
     }
 }
