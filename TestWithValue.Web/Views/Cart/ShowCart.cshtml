@@ -1,0 +1,40 @@
+﻿@using TestWithValue.Domain.ViewModels.CartItem
+@model IEnumerable<CartItemViewModel>
+
+<h2>سبد خرید شما</h2>
+
+<table>
+    <tr>
+        <th>نام موضوع</th>
+        <th>عملیات</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.TopicName</td>
+            <td>
+                <button onclick="removeFromCart(@item.CartItemId)">حذف</button>
+            </td>
+        </tr>
+    }
+</table>
+@section Scripts{
+
+    <script>
+        function removeFromCart(cartItemId) {
+            $.ajax({
+                url: '@Url.Action("RemoveFromCart", "Cart")',
+                type: 'POST',
+                data: { cartItemId: cartItemId },
+                success: function () {
+                    location.reload(); // پس از حذف، صفحه را مجدد بارگذاری می‌کند
+                },
+                error: function () {
+                    alert('خطایی در حذف آیتم از سبد خرید رخ داد!');
+                }
+            });
+        }
+    </script>
+
+}
+

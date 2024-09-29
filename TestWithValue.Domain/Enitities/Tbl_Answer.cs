@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -12,22 +11,29 @@ namespace TestWithValue.Domain.Enitities
     public class Tbl_Answer
     {
         [Key]
-        public int AnswerId { get; set; }  // کلید اصلی
-        
-        public int UserId { get; set; }  // کلید خارجی به جدول کاربران
+        public int AnswerId { get; set; }
+        public int AnswerValue { get; set; }
+
+        [ForeignKey("User")]
+        public int UserId { get; set; }
+
         [ForeignKey("Question")]
 
-        public int QuestionId { get; set; }  // کلید خارجی به جدول سوالات
-        [ForeignKey("SelectedOption")]
-        public int SelectedOptionId { get; set; }  // کلید خارجی به جدول گزینه‌ها (Option)
+        public int QuestionId { get; set; }
 
-        // ناوبری به کاربر (در صورتی که مدل User دارید)
-        // public User User { get; set; }
+        [ForeignKey("Option")]
 
-        // ناوبری به سوال
+        public int OptionId { get; set; }
+
+        [ForeignKey("Test")]
+
+        public int TestId { get; set; }
+
+        public Tbl_User User { get; set; }
         public Tbl_Question Question { get; set; }
+        public Tbl_Option Option { get; set; }
+        public Tbl_Test Test { get; set; }
 
-        // ناوبری به گزینه انتخاب شده
-        public Tbl_Option SelectedOption { get; set; }
+
     }
 }

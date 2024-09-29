@@ -8,15 +8,11 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.1.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TestWithValue.Domain\TestWithValue.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\Services%27Interface\" />
-    <Folder Include="Services\Services\" />
   </ItemGroup>
 
 </Project>

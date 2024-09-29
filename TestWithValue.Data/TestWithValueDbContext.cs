@@ -22,12 +22,35 @@ namespace TestWithValue.Data
         public DbSet<Tbl_Test> tbl_Tests { get; set; }
         public DbSet<Tbl_Topic> tbl_Topics { get; set; }
         public DbSet<Tbl_User> tbl_Users { get; set; }
+        public DbSet<Tbl_CartItem> tbl_CartItems { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Tbl_Test>().HasKey(t => t.TestId);
 
-
+            modelBuilder.Entity<Tbl_Answer>()
+                .HasKey(a => a.AnswerId);
+                     
+            modelBuilder.Entity<Tbl_Answer>()
+             .HasOne(a => a.Question)
+           .WithOne(o => o.Answer)
+            .HasForeignKey<Tbl_Answer>(a => a.QuestionId)  // کلید خارجی به Tbl_Answer اشاره می‌کند
+             .OnDelete(DeleteBehavior.Restrict);
+           
+            modelBuilder.Entity<Tbl_Option>()
+        .HasOne(o => o.Test)
+        .WithMany(t => t.Options)
+        .HasForeignKey(o => o.TestId)
+        .OnDelete(DeleteBehavior.Restrict);  // یا DeleteBehavior.NoAction
+          
+            modelBuilder.Entity<Tbl_Answer>()
+        .HasOne(o => o.Test)
+        .WithMany(t => t.Answers)
+        .HasForeignKey(o => o.TestId)
+        .OnDelete(DeleteBehavior.Restrict);
+          
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(TestWithValueDbContext).Assembly);
         }
 

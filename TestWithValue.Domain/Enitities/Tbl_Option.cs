@@ -16,8 +16,11 @@ namespace TestWithValue.Domain.Enitities
         public int Value { get; set; }  // ارزش گزینه
         [ForeignKey("Question")]
         public int QuestionId { get; set; }  // کلید خارجی به جدول سوالات
+        public int TestId {  get; set; }
+        public Tbl_Test Test { get; set; }
 
         // ناوبری به سوال مرتبط
         public Tbl_Question Question { get; set; }
+         
     }
 }

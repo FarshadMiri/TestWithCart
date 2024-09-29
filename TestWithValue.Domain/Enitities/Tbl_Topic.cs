@@ -11,6 +11,7 @@ namespace TestWithValue.Domain.Enitities
 {
     public class Tbl_Topic
     {
+        [Key]
         public int TopicId { get; set; }  // کلید اصلی
         public string TopicName { get; set; }  // نام موضوع
         public int Value { get; set; }  // ارزش موضوع

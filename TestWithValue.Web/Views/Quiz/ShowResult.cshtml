@@ -1,6 +1,48 @@
 ﻿@using TestWithValue.Domain.ViewModels.Result
-@model ResultViewModel
+@model ShowResultViewModel
 
-<h2>نتیجه آزمون</h2>
-<p>امتیاز شما: @Model.TotalScore</p>
-<p>شما در دسته‌بندی: @Model.CategoryName قرار می‌گیرید.</p>
+
+<div class="topics-container">
+    @foreach (var topic in Model.Topics)
+    {
+        <div class="card">
+            <h3>@topic.TopicName</h3>
+            <!-- ارسال topicId و testId به متد addToCart -->
+            <button onclick="addToCart(@topic.TopicId)">افزودن به سبد خرید</button>
+        </div>
+    }
+</div>
+
+
+@section Scripts{
+    <script>
+        function addToCart(topicId) {
+            console.log("Sending Topic ID:", topicId); // برای بررسی اینکه topicId ارسال می‌شود
+
+            var data = {
+                topicId: topicId
+            };
+
+            $.ajax({
+                url: '@Url.Action("AddToCart", "Cart")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                    alert('موضوع به سبد خرید اضافه شد!');
+                },
+                error: function () {
+                    alert('خطایی در افزودن به سبد خرید رخ داد!');
+                }
+            });
+        }
+
+
+    </script>
+
+
+
+}
+
+
+

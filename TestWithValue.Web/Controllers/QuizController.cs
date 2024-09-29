@@ -1,8 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TestWithValue.Application.Services.IServices;
+using System.Collections;
+using TestWithValue.Application.Services.Services;
+using TestWithValue.Application.Services.Services_Interface;
+using TestWithValue.Application.Services.Services_Interface.ActionMessage_s_Interface;
 using TestWithValue.Domain.ViewModels.Answer;
+using TestWithValue.Domain.ViewModels.Option;
 using TestWithValue.Domain.ViewModels.Question;
 using TestWithValue.Domain.ViewModels.Result;
 
@@ -12,82 +16,95 @@ namespace TestWithValue.Web.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IQuestionService _questionService;
+        private readonly ITestService _testService;
+        private readonly IOptionService _optiontService;
         private readonly IAnswerService _answerService;
-        private readonly ICategoryService _categoryService;
+        private readonly ITopicSevice _topicService;
+        private readonly IActionMessageService _actionMessageService;
 
 
-
-
-
-        public QuizController(IQuestionService questionService, IAnswerService answerService, ICategoryService categoryService , IMapper mapper)
+        public QuizController(IQuestionService questionService, IOptionService optionService, ITestService testService, IAnswerService answerService,ITopicSevice topicSevice, IMapper mapper,IActionMessageService actionMessageService)
         {
             _mapper = mapper;
             _questionService = questionService;
-            _answerService = answerService;
-            _categoryService = categoryService;
-
+            _testService = testService;
+            _optiontService = optionService;
+            _answerService = answerService; 
+            _topicService = topicSevice;
+            _actionMessageService = actionMessageService;   
         }
 
-        public IActionResult Start()
+        public async Task<IActionResult> Start()
         {
-            return View();
+            _actionMessageService.AddMessage("به صفحه آزمون خوش امدید", "success");
+
+            var tests = await _testService.GetAllTests();
+            return View(tests);
         }
 
         // دریافت سوالات
-        public async Task<IActionResult> GetQuestion(int index)
+        [HttpGet]
+        public async Task<IActionResult> ShowQuestions(int index, int testId)
         {
-            ViewBag.HideNavbar = true;
-            var questionsVM = await _questionService.GetAllQuestion();
-            var questionsList = questionsVM.ToList();
+            //var questions = await _questionService.GetQuestionsByTestId(testId);
+            //var questionsList = questions.ToList();
 
-            // چک کردن مقدار index
-            if (index < 0 || index >= questionsList.Count)
-            {
-                return NotFound();
-            }
+            //// اطمینان از اینکه ایندکس معتبر است
+            //if (index < 0 || index >= questionsList.Count)
+            //{
+            //    return NotFound();
+            //}
 
-            // ساختن مدل سوال برای ارسال به ویو
-            var questionVM = new ShowQuestionViewModel
-            {
-                QuestionId = questionsList[index].QuestionId,
-                QuestionText = questionsList[index].QuestionText,
-                CurrentQuestionIndex = index
-            };
+            //// یافتن سوال فعلی بر اساس ایندکس
+            //var currentQuestion = questionsList[index];
 
-            ViewBag.TotalQuestions = questionsList.Count;  // ارسال تعداد کل سوالات برای استفاده در ویو
+            //// دریافت گزینه‌ها برای سوال فعلی
+            //var options = await _optiontService.GetOptionByQuestionIdAndTestId(currentQuestion.QuestionId, testId);
 
+            //var viewModel = new ShowQuestionsWithSelectedOptionViewModel
+            //{
+            //    QuestionId = currentQuestion.QuestionId,
+            //    QuestionText = currentQuestion.QuestionText,
+            //    CurrentQuestionIndex = index,
+            //    Options = options,
+            //    IsLastQuestion = index == questionsList.Count - 1,
+            //    TestId = testId
+            //};
+            //ViewBag.TotalQuestions = questionsList.Count;
+
+            //return View(viewModel);
+           
             
-            //return  PartialView("_QuestionPartial", questionVM);  // PartialView را به جای View برگردانید
-            return View(questionVM);
+            return View();
         }
+
 
 
 
         [HttpPost]
-        public async Task<IActionResult> SubmitAnswer([FromBody] SumbitAnswerViewModel submitAnswer)
+        public async Task<IActionResult> SaveAnswer([FromBody] AnswerViewModel model)
         {
+            
+
             if (ModelState.IsValid)
             {
-                submitAnswer.UserId = 1; // دریافت UserId کاربر از context یا session
+                model.UserId = 1; // دریافت UserId کاربر از context یا session
 
-                // تنظیم امتیاز بر اساس جواب کاربر
-                submitAnswer.AnswerScore = submitAnswer.UserAnswer == "Yes" ? 10 : 0;
 
-                // بررسی وجود پاسخ قبلی برای سوال فعلی
-                var existingAnswer = await _answerService.GetAnswerByQuestionIdAndUserId(submitAnswer.QuestionId, submitAnswer.UserId);
+                var existingAnswer = await _answerService.GetAnswerByQuestionId(model.QuestionId);
 
                 if (existingAnswer != null)
                 {
-                    // اگر پاسخی از قبل وجود دارد، آن را آپدیت کنید
-                    existingAnswer.UserAnswer = submitAnswer.UserAnswer;
-                    existingAnswer.AnswerScore = submitAnswer.AnswerScore;
+                   // اگر پاسخی از قبل وجود دارد، آن را آپدیت کنید
+                  existingAnswer.AnswerValue = model.AnswerValue;
+                  existingAnswer.OptionId = model.OptionId;
 
-                    await _answerService.UpdateAnswer(existingAnswer);
+                   await _answerService.UpdateAnswer(existingAnswer);
                 }
                 else
                 {
                     // اگر پاسخی وجود ندارد، پاسخ جدید ایجاد کنید
-                    await _answerService.AddAnswer(submitAnswer);
+                    await _answerService.SaveAnswer(model);
                 }
 
                 return Ok();
@@ -96,49 +113,39 @@ namespace TestWithValue.Web.Controllers
             return BadRequest();
         }
         [HttpGet]
-        public async Task<IActionResult> GetAnswer(int questionId)
+        public async Task<IActionResult> GetAnswer(int questionId, int testId)
         {
-            var userId = 1; // اینجا باید UserId کاربر را دریافت کنید
-            var answer = await _answerService.GetAnswerByQuestionIdAndUserId(questionId, userId);
+            // استفاده از سرویس برای دریافت پاسخ بر اساس questionId و testId
+            var answer = await _answerService.GetAnswerByQuestionId(questionId);
 
+            // بررسی اینکه آیا پاسخی پیدا شده است یا خیر
             if (answer == null)
             {
-                return Ok(new { userAnswer = "" }); // اگر پاسخی نباشد، پاسخ خالی برگردانید
+                return NotFound(); // یا می‌توانید مقدار پیش‌فرضی برگردانید
             }
 
-            return Ok(new
-            {
-                userAnswer = answer.UserAnswer
-            });
+            // برگرداندن پاسخ به صورت JSON
+            return Json(answer); // یا return Ok(answer); نیز می‌تواند استفاده شود
         }
         // پایان آزمون و نمایش نتیجه
-        public async Task<IActionResult> ShowResult()
+        public async Task<IActionResult> ShowResult(int testId)
         {
-            int userId = 1; // در عمل باید userId کاربر فعلی را دریافت کنید
-
-            // دریافت تمام پاسخ‌های کاربر از دیتابیس
-            var userAnswers = await _answerService.GetAnswersByUserId(userId);
-
-            // محاسبه مجموع امتیازات
-            int totalScore = userAnswers.Sum(a => a.AnswerScore);
-
-            // یافتن کتگوری مناسب بر اساس مجموع امتیازات
-            var userCategory = await _categoryService.GetCategory(totalScore); 
-
-            if (userCategory == null)
+            var userId = 1;
+            var answers = await _answerService.GetAnswerByTestIdAndUserId(testId, userId);
+            if (answers != null)
             {
-                // مدیریت خطا در صورت عدم یافتن کتگوری
-                return NotFound("دسته‌بندی متناسب با امتیاز شما یافت نشد.");
+                // محاسبه مجموع امتیازات
+                int totalScore = answers.Sum(a => a.AnswerValue);
+                var topics = await _topicService.GetTopicByTestId(testId, totalScore);
+                var topicsVM = new ShowResultViewModel
+                {
+                    Topics = topics
+                };
+                return View(topicsVM);
             }
 
-            // ارسال نتیجه به ویو
-            var resultViewModel = new ResultViewModel
-            {
-                TotalScore = totalScore,
-                CategoryName = userCategory.Name
-            };
+            return BadRequest();
 
-            return View(resultViewModel);
         }
 
         // هدایت پس از اتمام زمان آزمون

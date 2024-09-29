@@ -15,6 +15,7 @@ namespace TestWithValue.Domain.Enitities
         [Key]
         public int QuestionId { get; set; }  // کلید اصلی
         public string QuestionText { get; set; }  // متن سوال
+       
         [ForeignKey("Test")]
         public int TestId { get; set; }  // کلید خارجی به جدول آزمون‌ها
 
@@ -23,5 +24,7 @@ namespace TestWithValue.Domain.Enitities
 
         // ناوبری به گزینه‌های مرتبط
         public ICollection<Tbl_Option> Options { get; set; }
+        public Tbl_Answer Answer { get; set; }
+
     }
 }

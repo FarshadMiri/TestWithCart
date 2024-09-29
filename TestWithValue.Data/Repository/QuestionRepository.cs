@@ -16,9 +16,11 @@ namespace TestWithValue.Data.Repository
         {
             _context = context; 
         }
-        public  async Task<IEnumerable<Tbl_Question>> GetAllQuestion()
+
+        public async Task<IEnumerable<Tbl_Question>> GetQuestionsByTestId(int testId)
         {
-            return await _context.Tbl_Questions.ToListAsync();
+            var questions=await _context.tbl_Questions.Where(q=>q.TestId==testId).ToListAsync();
+            return questions;
         }
     }
 }

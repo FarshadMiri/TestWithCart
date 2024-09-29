@@ -9,18 +9,23 @@ namespace TestWithValue.Domain.Enitities
 {
     public class Tbl_Test
     {
-        public class Test
-        {
-            [Key]
-            public int TestId { get; set; }  // کلید اصلی
-            public string TestName { get; set; }  // نام آزمون
 
-            // ناوبری به سوالات مرتبط
-            public ICollection<Tbl_Question> Questions { get; set; }
 
-            // ناوبری به تاپیک‌های مرتبط
-            public ICollection<Tbl_Topic> Topics { get; set; }
-        }
+
+        [Key]
+        public int TestId { get; set; }
+        public string TestName { get; set; }  // نام آزمون
+
+        // ناوبری به سوالات مرتبط
+        public ICollection<Tbl_Question> Questions { get; set; }
+
+        // ناوبری به تاپیک‌های مرتبط
+        public ICollection<Tbl_Topic> Topics { get; set; }
+        public ICollection<Tbl_Option> Options { get; set; }
+        public ICollection<Tbl_Answer> Answers { get; set; }
+
+
+
 
     }
 }

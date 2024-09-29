@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TestWithValue.Domain.ViewModels.Topic;
 
 namespace TestWithValue.Domain.ViewModels.Result
 {
-    public class ResultViewModel
+    public class ShowResultViewModel
     {
-        public int TotalScore { get; set; }
-        public string CategoryName { get; set; }
+        public IEnumerable<ShowTopicViewModel> Topics { get; set; }
     }
 }

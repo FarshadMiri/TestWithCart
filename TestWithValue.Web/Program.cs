@@ -8,6 +8,7 @@ builder.Services.ConfigurePersistenceServices(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
