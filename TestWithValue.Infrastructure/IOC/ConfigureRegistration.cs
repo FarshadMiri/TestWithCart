@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +14,7 @@ using TestWithValue.Application.Services.Services_Interface;
 using TestWithValue.Application.Services.Services_Interface.ActionMessage_s_Interface;
 using TestWithValue.Data;
 using TestWithValue.Data.Repository;
+using TestWithValue.Domain.Enitities;
 
 namespace TestWithValue.Infrastructure.IOC
 {
@@ -26,8 +28,9 @@ namespace TestWithValue.Infrastructure.IOC
                 options.UseSqlServer(configuration
                     .GetConnectionString("TestWithValueConnection"));
             });
-            // services.AddScoped<IQuestionRepository, QuestionRepository>();
-            // services.AddScoped<IQuestionService, QuestionService>();
+
+        
+         
             services.AddScoped<ITestRepository, TestRepository>();
             services.AddScoped<ITestService, TestService>();
 
@@ -51,21 +54,10 @@ namespace TestWithValue.Infrastructure.IOC
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<ITempDataDictionaryFactory, TempDataDictionaryFactory>();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            services.AddScoped<ITicketRepository, TicketRepository>();
+            services.AddScoped<ITicketService, TicketService>();
+           
+           
 
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 

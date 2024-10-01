@@ -46,36 +46,36 @@ namespace TestWithValue.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> ShowQuestions(int index, int testId)
         {
-            //var questions = await _questionService.GetQuestionsByTestId(testId);
-            //var questionsList = questions.ToList();
+            var questions = await _questionService.GetQuestionsByTestId(testId);
+            var questionsList = questions.ToList();
 
-            //// اطمینان از اینکه ایندکس معتبر است
-            //if (index < 0 || index >= questionsList.Count)
-            //{
-            //    return NotFound();
-            //}
+            // اطمینان از اینکه ایندکس معتبر است
+            if (index < 0 || index >= questionsList.Count)
+            {
+                return NotFound();
+            }
 
-            //// یافتن سوال فعلی بر اساس ایندکس
-            //var currentQuestion = questionsList[index];
+            // یافتن سوال فعلی بر اساس ایندکس
+            var currentQuestion = questionsList[index];
 
-            //// دریافت گزینه‌ها برای سوال فعلی
-            //var options = await _optiontService.GetOptionByQuestionIdAndTestId(currentQuestion.QuestionId, testId);
+            // دریافت گزینه‌ها برای سوال فعلی
+            var options = await _optiontService.GetOptionByQuestionIdAndTestId(currentQuestion.QuestionId, testId);
 
-            //var viewModel = new ShowQuestionsWithSelectedOptionViewModel
-            //{
-            //    QuestionId = currentQuestion.QuestionId,
-            //    QuestionText = currentQuestion.QuestionText,
-            //    CurrentQuestionIndex = index,
-            //    Options = options,
-            //    IsLastQuestion = index == questionsList.Count - 1,
-            //    TestId = testId
-            //};
-            //ViewBag.TotalQuestions = questionsList.Count;
+            var viewModel = new ShowQuestionsWithSelectedOptionViewModel
+            {
+                QuestionId = currentQuestion.QuestionId,
+                QuestionText = currentQuestion.QuestionText,
+                CurrentQuestionIndex = index,
+                Options = options,
+                IsLastQuestion = index == questionsList.Count - 1,
+                TestId = testId
+            };
+            ViewBag.TotalQuestions = questionsList.Count;
 
-            //return View(viewModel);
-           
-            
-            return View();
+            return View(viewModel);
+
+
+            //return View();
         }
 
 

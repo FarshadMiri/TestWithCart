@@ -10,6 +10,7 @@ using TestWithValue.Domain.ViewModels.CartItem;
 using TestWithValue.Domain.ViewModels.Option;
 using TestWithValue.Domain.ViewModels.Question;
 using TestWithValue.Domain.ViewModels.Test;
+using TestWithValue.Domain.ViewModels.Ticket;
 using TestWithValue.Domain.ViewModels.Topic;
 
 namespace TestWithValue.Application.profile
@@ -25,6 +26,7 @@ namespace TestWithValue.Application.profile
             CreateMap<Tbl_Answer, AnswerViewModel>().ReverseMap();
             CreateMap<Tbl_Topic, ShowTopicViewModel>().ReverseMap();
             CreateMap<Tbl_CartItem, CartItemViewModel>().ReverseMap();
+            CreateMap<Tbl_Ticket,TicketViewModel >();
 
 
 

@@ -10,8 +10,9 @@ namespace TestWithValue.Domain.ViewModels.Question
 {
     public class ShowQuestionViewModel
     {
+        public int QuestionId { get; set; }  // کلید اصلی
+        public string QuestionText { get; set; }  // متن سوال
         public int TestId { get; set; }
-        public int CurrentQuestionIndex { get; set; }
 
     }
 }

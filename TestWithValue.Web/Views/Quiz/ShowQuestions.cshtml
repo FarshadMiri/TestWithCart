@@ -1,6 +1,6 @@
 ﻿
 
-@* @using TestWithValue.Domain.ViewModels.Question
+@using TestWithValue.Domain.ViewModels.Question
 
 @model ShowQuestionsWithSelectedOptionViewModel
 
@@ -183,11 +183,11 @@
 
     </script>
 }
- *@
+
  
 
-@await Component.InvokeAsync("ShowQuestions", new { index = Model.CurrentQuestionIndex, testId = Model.TestId })
-
+@* @await Component.InvokeAsync("ShowQuestions", new { index = Model.CurrentQuestionIndex, testId = Model.TestId })
+ *@
 
 
 

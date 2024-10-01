@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using TestWithValue.Domain.Enitities;
 
 namespace TestWithValue.Data
 {
-    public class TestWithValueDbContext : DbContext
+    public class TestWithValueDbContext : IdentityDbContext
     {
         public TestWithValueDbContext(DbContextOptions<TestWithValueDbContext> options)
             : base(options)
@@ -23,6 +24,9 @@ namespace TestWithValue.Data
         public DbSet<Tbl_Topic> tbl_Topics { get; set; }
         public DbSet<Tbl_User> tbl_Users { get; set; }
         public DbSet<Tbl_CartItem> tbl_CartItems { get; set; }
+        public DbSet<Tbl_Ticket> tbl_Tickets { get; set; }
+
+
 
 
 
@@ -52,6 +56,7 @@ namespace TestWithValue.Data
         .OnDelete(DeleteBehavior.Restrict);
           
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(TestWithValueDbContext).Assembly);
+            base.OnModelCreating(modelBuilder);
         }
 
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)

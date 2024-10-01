@@ -6,3 +6,64 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Support Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.9/signalr.min.js"></script>
+</head>
+<body>
+    <ul id="messagesList"></ul>
+    <input type="text" id="messageInput" />
+    <button onclick="sendMessage()">Send</button>
+
+    @if (User.IsInRole("Agent"))
+    {
+        <script>
+            var role = "Agent";
+        </script>
+    }
+    else
+    {
+        <script>
+            var role = "User";
+        </script>
+    }
+ 
+    <script>
+        const connection = new signalR.HubConnectionBuilder().withUrl("/supportHub").build();
+
+        connection.on("ReceiveMessage", function (user, message) {
+            const msg = user + ": " + message;
+            const li = document.createElement("li");
+            li.textContent = msg;
+            document.getElementById("messagesList").appendChild(li);
+        });
+
+        connection.on("TicketClosed", function (ticketId) {
+            alert("Ticket " + ticketId + " is closed.");
+        });
+
+        connection.start().catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        function sendMessage() {
+            const message = document.getElementById("messageInput").value;
+            connection.invoke("SendMessageToAgent", "UserId", message).catch(function (err) {
+                return console.error(err.toString());
+            });
+        }
+        function sendMessage() {
+            const message = document.getElementById("messageInput").value;
+            connection.invoke("SendMessageToUser", "AgentId", "UserId", 1, message).catch(function (err) {
+                return console.error(err.toString());
+            });
+        }
+
+
+    </script>
+</body>
+</html>
+

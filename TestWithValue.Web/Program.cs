@@ -1,5 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using TestWithValue.Application.profile;
+using TestWithValue.Data;
+using TestWithValue.Data.SeedData;
 using TestWithValue.Infrastructure.IOC;
+using TestWithValue.Web.HubSupport;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +15,12 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => {
+    //  ‰Ÿ?„«  —« «?‰Ã« «‰Ã«„ œÂ?œ
+})
+.AddEntityFrameworkStores<TestWithValueDbContext>()
+.AddDefaultTokenProviders();
 
 var app = builder.Build();
 
@@ -27,7 +37,21 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseEndpoints(async endpoints =>
+{
+     endpoints.MapHub<SupportHub>("/supportHub");
+    endpoints.MapDefaultControllerRoute();
+});
+app.UseAuthentication();    
 app.UseAuthorization();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    await IdentitySeedData.Initialize(services, userManager, roleManager);
+}
 
 app.MapControllerRoute(
     name: "default",
