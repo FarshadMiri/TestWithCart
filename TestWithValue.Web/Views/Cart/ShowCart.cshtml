@@ -1,7 +1,16 @@
-﻿@using TestWithValue.Domain.ViewModels.CartItem
+﻿@using TestWithValue.Domain.OperationResult
+@using TestWithValue.Domain.ViewModels.CartItem
 @model IEnumerable<CartItemViewModel>
 
 <h2>سبد خرید شما</h2>
+
+@if (ViewBag.OperationResult != null)
+{
+    var messageType = ViewBag.OperationResult.Success ? "alert-success" : "alert-danger";
+    <div id="operationMessage" class="alert @messageType">
+        @ViewBag.OperationResult.Message
+    </div>
+}
 
 <table>
     <tr>
@@ -18,9 +27,19 @@
         </tr>
     }
 </table>
-@section Scripts{
 
+@section Scripts {
     <script>
+        // بعد از بارگذاری صفحه
+        window.onload = function () {
+            var message = document.getElementById("operationMessage");
+            if (message) {
+                setTimeout(function () {
+                    message.style.display = "none";
+                }, 2000); // پیام بعد از 2 ثانیه مخفی می‌شود
+            }
+        };
+
         function removeFromCart(cartItemId) {
             $.ajax({
                 url: '@Url.Action("RemoveFromCart", "Cart")',
@@ -35,6 +54,4 @@
             });
         }
     </script>
-
 }
-

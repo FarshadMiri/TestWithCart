@@ -11,8 +11,10 @@ namespace TestWithValue.Application.Services.Services_Interface
 {
     public interface ITicketService
     {
-        Task<TicketViewModel> GetTicketByIdAsync(int id);
-        Task<int> CreateTicketAsync(TicketViewModel ticket);
-        Task UpdateTicketStatusAsync(int ticketId, TicketStatus status);
+        Task CreateTicketAsync(TicketViewModel model); // ایجاد تیکت
+        Task UpdateTicketStatusAsync(int ticketId, TicketStatus status); // بروزرسانی وضعیت تیکت
+        Task SaveMessageAsync(int ticketId, string senderId, string message); // ذخیره پیام
+        Task<bool> UserHasOpenTicketAsync(string userId);
+        Task<TicketViewModel> GetOpenTicketForUserAsync(string userId);
     }
 }

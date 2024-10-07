@@ -50,23 +50,7 @@ namespace TestWithValue.Data.Migrations
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "tbl_Tickets",
-                columns: table => new
-                {
-                    TicketId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    Customer = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SupportAgent = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_tbl_Tickets", x => x.TicketId);
-                });
+            
 
             migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
@@ -232,9 +216,7 @@ namespace TestWithValue.Data.Migrations
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
 
-            migrationBuilder.DropTable(
-                name: "tbl_Tickets");
-
+          
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 

@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 namespace TestWithValue.Domain.Enitities
 {
-    public class Tbl_TicketStatus
+    public enum TicketStatus
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        Open=1,
+        InProgress=2,
+        Closed=3,
+        Resolved=4
     }
 }

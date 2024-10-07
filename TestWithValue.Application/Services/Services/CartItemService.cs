@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TestWithValue.Application.Contract.Persistence;
 using TestWithValue.Application.Services.Services_Interface;
 using TestWithValue.Domain.Enitities;
+using TestWithValue.Domain.OperationResult;
 using TestWithValue.Domain.ViewModels.CartItem;
 
 namespace TestWithValue.Application.Services.Services
@@ -29,7 +30,8 @@ namespace TestWithValue.Application.Services.Services
                 UserId = cartItemViewModel.UserId, 
 
             };
-            await _cartRepository.AddToCart(cartItem);
+           await _cartRepository.AddToCart(cartItem);
+            
 
         }
 

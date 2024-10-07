@@ -1,0 +1,57 @@
+﻿@{
+    ViewData["Title"] = "Support Chat";
+}
+
+<h2>Support Chat</h2>
+
+<div id="chat-container">
+    <div id="messages" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc;">
+        <!-- پیام‌ها در اینجا بارگذاری می‌شوند -->
+    </div>
+    <input type="text" id="messageInput" placeholder="پیام خود را وارد کنید..." />
+    <button id="sendMessage">ارسال</button>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@7.0.12/dist/browser/signalr.min.js"></script>
+
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/supportHub") // آدرس Hub
+            .build();
+
+        // دریافت پیام از هاب (همراه با ticketId)
+        connection.on("ReceiveMessageFromUser", function (userId, message, ticketId) {
+            $("#messages").append(`<div><strong>کاربر ${userId}:</strong> ${message} (Ticket ID: ${ticketId})</div>`);
+
+            // ذخیره ticketId در صورت نیاز
+            if (!window.ticketId) {
+                window.ticketId = ticketId; // ذخیره ticketId
+            }
+
+            if (!window.userId) {
+                window.userId = userId; // ذخیره userId
+            }
+        });
+
+        // ارسال پیام از پشتیبان به کاربر
+        $("#sendMessage").click(function () {
+            const message = $("#messageInput").val();
+
+            if (!window.ticketId) {
+                console.error("Ticket ID is not available.");
+                return;
+            }
+
+            // ارسال پیام همراه با ticketId
+            connection.invoke("SendMessageToUser", window.userId, window.ticketId, message)
+                .catch(err => console.error(err));
+
+            $("#messageInput").val(""); // پاک کردن input
+        });
+
+        // شروع اتصال به Hub
+        connection.start().catch(err => console.error(err));
+    </script>
+
+}

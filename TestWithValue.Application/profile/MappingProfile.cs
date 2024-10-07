@@ -26,7 +26,7 @@ namespace TestWithValue.Application.profile
             CreateMap<Tbl_Answer, AnswerViewModel>().ReverseMap();
             CreateMap<Tbl_Topic, ShowTopicViewModel>().ReverseMap();
             CreateMap<Tbl_CartItem, CartItemViewModel>().ReverseMap();
-            CreateMap<Tbl_Ticket,TicketViewModel >();
+            CreateMap<Tbl_Ticket,TicketViewModel >().ReverseMap();
 
 
 

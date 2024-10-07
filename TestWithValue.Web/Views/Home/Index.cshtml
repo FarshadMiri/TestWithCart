@@ -1,69 +1,81 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using System.Security.Claims
+@{
+    var isLoggedIn = TempData["isLoggedIn"] != null && (bool)TempData["isLoggedIn"];
+    var role = TempData["role"]?.ToString();
 }
-@await Component.InvokeAsync("ActionMessage")
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // دریافت UserId از Identity
+}
+
+<div>
+    <h1>خوش آمدید!</h1>
+
+    @if (isLoggedIn && role == "User")
+    {
+        <div id="chatContainer">
+            <h2>چت با پشتیبانی</h2>
+            <div id="messages" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc;"></div>
+            <input type="text" id="chatInput" placeholder="پیام خود را بنویسید..." />
+            <button id="sendMessageButton">ارسال</button>
+        </div>
+    }
+    else if (!isLoggedIn)
+    {
+        <p>برای چت با پشتیبانی وارد حساب کاربری خود شوید.</p>
+    }
+    else if (role == "Agent")
+    {
+        <p>شما به عنوان پشتیبان وارد شده‌اید. برای چت به صفحه پشتیبانی بروید.</p>
+    }
 </div>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Support Chat</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.9/signalr.min.js"></script>
-</head>
-<body>
-    <ul id="messagesList"></ul>
-    <input type="text" id="messageInput" />
-    <button onclick="sendMessage()">Send</button>
+@section Scripts {
+    <!-- استفاده از CDN برای SignalR -->
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@7.0.12/dist/browser/signalr.min.js"></script>
 
-    @if (User.IsInRole("Agent"))
-    {
-        <script>
-            var role = "Agent";
-        </script>
-    }
-    else
-    {
-        <script>
-            var role = "User";
-        </script>
-    }
- 
     <script>
-        const connection = new signalR.HubConnectionBuilder().withUrl("/supportHub").build();
+        document.addEventListener("DOMContentLoaded", function () {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/supportHub") // آدرس Hub در سرور
+                .build();
 
-        connection.on("ReceiveMessage", function (user, message) {
-            const msg = user + ": " + message;
-            const li = document.createElement("li");
-            li.textContent = msg;
-            document.getElementById("messagesList").appendChild(li);
-        });
-
-        connection.on("TicketClosed", function (ticketId) {
-            alert("Ticket " + ticketId + " is closed.");
-        });
-
-        connection.start().catch(function (err) {
-            return console.error(err.toString());
-        });
-
-        function sendMessage() {
-            const message = document.getElementById("messageInput").value;
-            connection.invoke("SendMessageToAgent", "UserId", message).catch(function (err) {
-                return console.error(err.toString());
+            // Event listener برای دریافت پیام از پشتیبان
+            connection.on("ReceiveMessageFromAgent", function (agentId, message) {
+                const messagesDiv = document.getElementById("messages");
+                const newMessage = document.createElement("div");
+                newMessage.textContent = 'پشتیبان: ' + message;
+                messagesDiv.appendChild(newMessage);
             });
-        }
-        function sendMessage() {
-            const message = document.getElementById("messageInput").value;
-            connection.invoke("SendMessageToUser", "AgentId", "UserId", 1, message).catch(function (err) {
-                return console.error(err.toString());
+
+            // ارسال پیام به پشتیبان
+            document.getElementById("sendMessageButton").addEventListener("click", function () {
+                const message = document.getElementById("chatInput").value;
+                const userId = '@userId'; // دریافت UserId از Identity
+
+                if (message.trim() === "") {
+                    return; // اگر پیام خالی است، کاری انجام نده
+                }
+
+                connection.invoke("SendMessageToAgent", userId, message)
+                    .then(() => {
+                        const messagesDiv = document.getElementById("messages");
+                        const newMessage = document.createElement("div");
+                        newMessage.textContent = 'شما: ' + message;
+                        messagesDiv.appendChild(newMessage);
+
+                        document.getElementById("chatInput").value = ""; // پاک کردن input بعد از ارسال
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                    });
             });
-        }
 
-
+            // شروع اتصال به SignalR Hub
+            connection.start().then(function () {
+                console.log("اتصال برقرار شد.");
+            }).catch(function (err) {
+                console.error("مشکلی در اتصال به وجود آمده:", err);
+            });
+        });
     </script>
-</body>
-</html>
-
+}

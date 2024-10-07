@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using TestWithValue.Application.Services.Services.OperationResultService;
 using TestWithValue.Application.Services.Services_Interface.ActionMessage_s_Interface;
 using TestWithValue.Web.Models;
 
@@ -17,7 +18,8 @@ namespace TestWithValue.Web.Controllers
 
         public IActionResult Index()
         {
-            _actionMessageService.AddMessage("Welcome to the homepage!", "success");
+            //_actionMessageService.AddMessage("Welcome to the homepage!", "success");
+
 
             return View();
         }

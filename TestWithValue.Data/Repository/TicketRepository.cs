@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
+﻿using Microsoft.EntityFrameworkCore;
+using TestWithValue.Domain.Enitities;
 using System.Threading.Tasks;
 using TestWithValue.Application.Contract.Persistence;
-using TestWithValue.Domain.Enitities;
+using TestWithValue.Data;
+using System.Linq.Expressions;
 
-namespace TestWithValue.Data.Repository
+namespace TestWithValue.Persistence.Repositories
 {
     public class TicketRepository : ITicketRepository
     {
@@ -18,22 +16,71 @@ namespace TestWithValue.Data.Repository
             _context = context;
         }
 
-        public async Task<Tbl_Ticket> GetByIdAsync(int id)
+        public async Task<bool> CreateTicketAsync(Tbl_Ticket ticket)
         {
-            return await _context.tbl_Tickets.FindAsync(id);
+            try
+            {
+                ticket.CreatedAt = DateTime.Now; // ثبت زمان ایجاد
+                _context.tbl_Tickets.Add(ticket); // اضافه کردن تیکت به دیتابیس
+                await _context.SaveChangesAsync(); // ذخیره تغییرات
+                return true;    
+            }
+            catch (Exception ex)
+            {
+                var inner = ex.InnerException.Message;
+                inner=inner.Trim();
+                return false;
+
+                
+            }
+           
         }
 
-        public async Task AddAsync(Tbl_Ticket ticket)
+        public async Task UpdateTicketStatusAsync(int ticketId, int statusId)
         {
-            await _context.tbl_Tickets.AddAsync(ticket);
-            await _context.SaveChangesAsync();
+            var ticket = await _context.tbl_Tickets.FindAsync(ticketId); // یافتن تیکت براساس ID
+            if (ticket != null)
+            {
+                ticket.TicketStatusId = statusId; // تغییر وضعیت تیکت
+                await _context.SaveChangesAsync(); // ذخیره تغییرات
+            }
         }
 
-        public async Task UpdateAsync(Tbl_Ticket ticket)
+        public async Task SaveMessageAsync(Tbl_TicketMessage ticketMessage)
         {
-             _context.tbl_Tickets.Update(ticket);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.tbl_TicketMessages.Add(ticketMessage); // اضافه کردن پیام به جدول پیام‌ها
+                await _context.SaveChangesAsync(); // ذخیره تغییرات
+
+            }
+            catch (Exception ex)
+            {
+                var inner = ex.InnerException.Message;
+                inner=  inner.Trim();
+
+                throw;
+            }
+        }
+
+        public async Task<Tbl_Ticket> GetTicketByIdAsync(int ticketId)
+        {
+            return await _context.tbl_Tickets
+                .Include(t => t.Messages) // شامل کردن پیام‌ها
+                .Include(t => t.TicketStatus) // شامل کردن وضعیت تیکت
+                .FirstOrDefaultAsync(t => t.Id == ticketId); // یافتن تیکت براساس ID
+        }
+
+        public async Task<bool> UserHasOpenTicketAsync(string userId)
+        {
+            return await _context.tbl_Tickets
+            .AnyAsync(t => t.UserId == userId && t.TicketStatusId == (int)TicketStatus.Open);
+        }
+
+        public async Task<Tbl_Ticket> GetOpenTicketForUserAsync(string userId)
+        {
+            return await _context.tbl_Tickets
+          .FirstOrDefaultAsync(t => t.UserId == userId && t.TicketStatusId == (int)TicketStatus.Open);
         }
     }
-
 }

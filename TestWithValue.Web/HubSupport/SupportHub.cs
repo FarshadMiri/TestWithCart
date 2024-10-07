@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
 using TestWithValue.Application.Services.Services_Interface;
-using TestWithValue.Domain.Enitities;
 using TestWithValue.Domain.ViewModels.Ticket;
 
 namespace TestWithValue.Web.HubSupport
 {
-    public class SupportHub :Hub
+    public class SupportHub : Hub
     {
         private readonly ITicketService _ticketService;
 
@@ -13,53 +13,89 @@ namespace TestWithValue.Web.HubSupport
         {
             _ticketService = ticketService;
         }
+
         public override async Task OnConnectedAsync()
         {
-            var user = Context.User;
-            if (user.IsInRole("Agent"))
+            var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // بررسی اینکه آیا کاربر یا پشتیبان است
+            if (Context.User.IsInRole("Agent"))
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Agent");
             }
-            else if (user.IsInRole("User"))
+            else if (Context.User.IsInRole("User"))
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, "User");
+
+                // دریافت ticketId برای کاربر
+                var ticket = await _ticketService.GetOpenTicketForUserAsync(userId);
+
+                if (ticket != null)
+                {
+                    // ارسال ticketId به کاربر
+                    await Clients.Caller.SendAsync("ReceiveTicketId", ticket.Id);
+                }
+                else
+                {
+                    // اگر تیکت وجود نداشت
+                    await Clients.Caller.SendAsync("ReceiveTicketId", null);
+                }
             }
+
             await base.OnConnectedAsync();
         }
+
         public async Task SendMessageToAgent(string userId, string message)
         {
-            var ticketViewModel = new TicketViewModel
+            // بررسی اینکه آیا تیکتی برای این کاربر وجود دارد
+            var existingTicket = await _ticketService.GetOpenTicketForUserAsync(userId);
+
+            int ticketId;
+
+            if (existingTicket == null)
             {
-                Title = "New Ticket", // عنوان تیکت
-                Description = message, // پیام کاربر به عنوان توضیحات تیکت
-                Status = TicketStatus.Open // وضعیت تیکت به صورت باز
-            };
+                // اگر تیکت موجود نیست، تیکت جدید ایجاد کنیم
+                var newTicketModel = new TicketViewModel
+                {
+                    Title = "New Ticket from User " + userId,
+                    Description = "User has started a new conversation.",
+                    UserId = userId
+                };
+                await _ticketService.CreateTicketAsync(newTicketModel);
+                var ticket = await _ticketService.GetOpenTicketForUserAsync(userId);
+                ticketId = ticket.Id;
+            }
+            else
+            {
+                // اگر تیکت موجود است، از آن استفاده می‌کنیم
+                ticketId = existingTicket.Id;
+            }
 
-            // ایجاد تیکت با استفاده از مدل و دریافت شناسه آن
-            var ticketId = await _ticketService.CreateTicketAsync(ticketViewModel);
+            // ذخیره پیام کاربر با استفاده از ticketId
+            await _ticketService.SaveMessageAsync(ticketId, userId, message);
 
-            // ارسال پیام به پشتیبان
-            await Clients.Group("Agent").SendAsync("ReceiveMessageFromUser", userId, message);
-
-            // ذخیره پیام در دیتابیس و بروزرسانی وضعیت تیکت
-            await _ticketService.UpdateTicketStatusAsync(ticketId, TicketStatus.InProgress);
+            // ارسال پیام به گروه پشتیبان‌ها
+            await Clients.Group("Agent").SendAsync("ReceiveMessageFromUser", userId, message, ticketId);
         }
 
-        public async Task SendMessageToUser(string agentId, string userId, int ticketId, string message)
+        public async Task SendMessageToUser(string userId, int ticketId, string message)
         {
-            // ارسال پیام از پشتیبان به کاربر
-            await Clients.User(userId).SendAsync("ReceiveMessageFromAgent", agentId, message);
+            var agentId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // ذخیره پیام در دیتابیس و بروزرسانی وضعیت تیکت
-            await _ticketService.UpdateTicketStatusAsync(ticketId, TicketStatus.Resolved);
-        }
+            if (agentId == null)
+            {
+                throw new HubException("پشتیبان احراز هویت نشده است.");
+            }
 
+           var ticket = await _ticketService.GetOpenTicketForUserAsync(userId);
 
-        public async Task CloseTicket(int ticketId)
-        {
-            // بستن تیکت
-          await  _ticketService.UpdateTicketStatusAsync(ticketId, TicketStatus.Closed);
-            await Clients.All.SendAsync("TicketClosed", ticketId);
+            if (ticket == null || ticket.UserId != userId)
+            {
+                throw new HubException("تیکت یافت نشد یا متعلق به کاربر نیست.");
+            }
+
+                    await Clients.User(userId).SendAsync("ReceiveMessageFromAgent", agentId, message);
+            await _ticketService.SaveMessageAsync(ticketId, agentId, message);
         }
     }
 }

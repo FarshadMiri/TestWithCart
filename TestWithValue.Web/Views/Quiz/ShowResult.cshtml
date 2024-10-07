@@ -2,6 +2,7 @@
 @model ShowResultViewModel
 
 
+
 <div class="topics-container">
     @foreach (var topic in Model.Topics)
     {
@@ -13,8 +14,7 @@
     }
 </div>
 
-
-@section Scripts{
+@section Scripts {
     <script>
         function addToCart(topicId) {
             console.log("Sending Topic ID:", topicId); // برای بررسی اینکه topicId ارسال می‌شود
@@ -29,19 +29,17 @@
                 contentType: 'application/json',
                 data: JSON.stringify(data),
                 success: function (response) {
-                    alert('موضوع به سبد خرید اضافه شد!');
+                    // پس از موفقیت به صفحه ShowCart هدایت شو
+                    window.location.href = '@Url.Action("ShowCart", "Cart")';
                 },
-                error: function () {
-                    alert('خطایی در افزودن به سبد خرید رخ داد!');
+                error: function (xhr) {
+                    console.log("خطا در افزودن به سبد خرید:", xhr.responseText);
                 }
             });
+
         }
-
-
+      
     </script>
-
-
-
 }
 
 

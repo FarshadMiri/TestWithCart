@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "User Chat";
+}
+
+<h2>User Chat</h2>
+
+<div id="chat-container">
+    <div id="messages" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc;">
+        <!-- پیام‌ها در اینجا بارگذاری می‌شوند -->
+    </div>
+    <input type="text" id="messageInput" placeholder="پیام خود را وارد کنید..." />
+    <button id="sendMessage">ارسال</button>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/supportHub") // آدرس Hub
+            .build();
+
+        connection.on("ReceiveMessageFromAgent", function (agentId, message) {
+            $("#messages").append(`<div><strong>${agentId}:</strong> ${message}</div>`);
+        });
+
+        $("#sendMessage").click(function () {
+            const message = $("#messageInput").val();
+            connection.invoke("SendMessageToAgent", "<USER_ID>", message) // جایگزین <USER_ID> با ID کاربر
+                .catch(err => console.error(err));
+            $("#messageInput").val("");
+        });
+
+        connection.start().catch(err => console.error(err));
+    </script>
+}
+
