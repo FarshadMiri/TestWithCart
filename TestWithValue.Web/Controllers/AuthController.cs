@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using TestWithValue.Domain.ViewModels.Login;
+using TestWithValue.Domain.ViewModels.Register;
 
 public class AuthController : Controller
 {
@@ -12,6 +13,39 @@ public class AuthController : Controller
     {
         _signInManager = signInManager;
         _userManager = userManager;
+    }
+
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View();
+    }
+    [HttpPost]
+    public async Task<IActionResult> Register(RegisterViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            var User = new IdentityUser()
+            {
+                UserName = model.UserName,
+                Email = model.Email,
+                EmailConfirmed = true
+            };
+            var result = await _userManager.CreateAsync(User, model.Password);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            foreach (var identityError in result.Errors)
+            {
+                ModelState.AddModelError("", identityError.Description);
+
+            }
+
+
+        }
+        return View(model);
     }
 
     [HttpGet]

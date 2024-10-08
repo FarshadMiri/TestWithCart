@@ -15,6 +15,9 @@ namespace TestWithValue.Application.Services.Services_Interface
         Task UpdateTicketStatusAsync(int ticketId, TicketStatus status); // بروزرسانی وضعیت تیکت
         Task SaveMessageAsync(int ticketId, string senderId, string message); // ذخیره پیام
         Task<bool> UserHasOpenTicketAsync(string userId);
+        Task<TicketViewModel> GetOpenTicketForUserByTitleAsync(string userId, string title);
         Task<TicketViewModel> GetOpenTicketForUserAsync(string userId);
+        Task<IEnumerable<TicketViewModel>> GetAllTicketsAsync();
+        Task<IEnumerable<TicketMessageViewModel>> GetMessagesByTicketIdAsync(int ticketId);
     }
 }

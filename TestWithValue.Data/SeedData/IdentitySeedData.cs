@@ -26,6 +26,9 @@ namespace TestWithValue.Data.SeedData
             await userManager.CreateAsync(user, "Password123!");
             await userManager.AddToRoleAsync(user, "User");
 
+            var user1 = new IdentityUser { UserName = "farshad", Email = "www.fadia8094@gmail.com" };
+            await userManager.AddToRoleAsync(user1, "User");
+
             var agent = new IdentityUser { UserName = "testagent", Email = "agent@example.com" };
             await userManager.CreateAsync(agent, "Password123!");
             await userManager.AddToRoleAsync(agent, "Agent");

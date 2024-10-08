@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using TestWithValue.Application.Contract.Persistence;
 using TestWithValue.Data;
 using System.Linq.Expressions;
+using System.Net.Sockets;
 
 namespace TestWithValue.Persistence.Repositories
 {
@@ -77,10 +78,30 @@ namespace TestWithValue.Persistence.Repositories
             .AnyAsync(t => t.UserId == userId && t.TicketStatusId == (int)TicketStatus.Open);
         }
 
+        public async Task<Tbl_Ticket> GetOpenTicketForUserByTitleAsync(string userId, string title)
+        {
+            return await _context.tbl_Tickets
+                .Where(t => t.UserId == userId && t.Title == title && t.TicketStatusId == (int)TicketStatus.Open) // فقط تیکت‌های باز را بگرد
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<Tbl_Ticket>> GetAllTicketsAsync()
+        {
+            return await _context.tbl_Tickets.ToListAsync();
+        }
+
+        public async Task<IEnumerable<Tbl_TicketMessage>> GetMessagesByTicketIdAsync(int ticketId)
+        {
+            return await _context.tbl_TicketMessages
+          .Where(msg => msg.TicketId == ticketId)
+          .OrderBy(msg => msg.SentAt)
+          .ToListAsync();
+        }
+
         public async Task<Tbl_Ticket> GetOpenTicketForUserAsync(string userId)
         {
             return await _context.tbl_Tickets
-          .FirstOrDefaultAsync(t => t.UserId == userId && t.TicketStatusId == (int)TicketStatus.Open);
+        .FirstOrDefaultAsync(t => t.UserId == userId && t.TicketStatusId == (int)TicketStatus.Open);
         }
     }
 }

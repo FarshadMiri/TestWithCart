@@ -75,10 +75,34 @@ public class TicketService : ITicketService
         return await _ticketRepository.UserHasOpenTicketAsync(userId);
     }
 
+    public async Task<TicketViewModel> GetOpenTicketForUserByTitleAsync(string userId, string title)
+    {
+        var ticket= await _ticketRepository.GetOpenTicketForUserByTitleAsync(userId,title);
+        var ticketVM=_mapper.Map<TicketViewModel>(ticket);
+        return ticketVM;
+    }
+
+    public  async Task<IEnumerable<TicketViewModel>> GetAllTicketsAsync()
+    {
+        var tickets = await _ticketRepository.GetAllTicketsAsync();
+        return _mapper.Map<List<TicketViewModel>>(tickets);
+    }
+
+    public async Task<IEnumerable<TicketMessageViewModel>> GetMessagesByTicketIdAsync(int ticketId)
+    {
+        var messages = await _ticketRepository.GetMessagesByTicketIdAsync(ticketId);
+        return messages.Select(msg => new TicketMessageViewModel
+        {
+             SenderId = msg.SenderId,
+             Message = msg.Message,
+            SentAt = msg.SentAt
+        });
+    }
+
     public async Task<TicketViewModel> GetOpenTicketForUserAsync(string userId)
     {
-        var ticket= await _ticketRepository.GetOpenTicketForUserAsync(userId);
-        var ticketVM=_mapper.Map<TicketViewModel>(ticket);
+        var ticket =  await _ticketRepository.GetOpenTicketForUserAsync(userId);
+        var ticketVM = _mapper.Map<TicketViewModel>(ticket);
         return ticketVM;
     }
 }

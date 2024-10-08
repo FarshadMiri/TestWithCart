@@ -16,7 +16,10 @@ namespace TestWithValue.Application.Contract.Persistence
         Task SaveMessageAsync(Tbl_TicketMessage ticketMessage); // برای ذخیره پیام
         Task<Tbl_Ticket> GetTicketByIdAsync(int ticketId); // برای دریافت تیکت براساس ID
         Task<bool> UserHasOpenTicketAsync(string userId);
+        Task<Tbl_Ticket> GetOpenTicketForUserByTitleAsync(string userId,string title);
         Task<Tbl_Ticket> GetOpenTicketForUserAsync(string userId);
+        Task<IEnumerable<Tbl_Ticket>> GetAllTicketsAsync();
+        Task<IEnumerable<Tbl_TicketMessage>> GetMessagesByTicketIdAsync(int ticketId);
     }
 
 }

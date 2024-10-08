@@ -10,11 +10,16 @@
 <div>
     <h1>خوش آمدید!</h1>
 
-    @if (isLoggedIn && role == "User")
+    @if (isLoggedIn)
     {
         <div id="chatContainer">
             <h2>چت با پشتیبانی</h2>
             <div id="messages" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc;"></div>
+
+            <!-- Input برای عنوان تیکت -->
+            <input type="text" id="ticketTitle" placeholder="عنوان تیکت خود را وارد کنید..." />
+
+            <!-- Input برای پیام -->
             <input type="text" id="chatInput" placeholder="پیام خود را بنویسید..." />
             <button id="sendMessageButton">ارسال</button>
         </div>
@@ -40,23 +45,25 @@
                 .build();
 
             // Event listener برای دریافت پیام از پشتیبان
-            connection.on("ReceiveMessageFromAgent", function (agentId, message) {
+            connection.on("ReceiveMessageFromAgent", function (agentId, message, ticketId) {
                 const messagesDiv = document.getElementById("messages");
                 const newMessage = document.createElement("div");
-                newMessage.textContent = 'پشتیبان: ' + message;
+                newMessage.textContent = 'پشتیبان (' + agentId + '): ' + message + ' (Ticket ID: ' + ticketId + ')';
                 messagesDiv.appendChild(newMessage);
             });
 
             // ارسال پیام به پشتیبان
             document.getElementById("sendMessageButton").addEventListener("click", function () {
                 const message = document.getElementById("chatInput").value;
+                const title = document.getElementById("ticketTitle").value; // دریافت عنوان تیکت
                 const userId = '@userId'; // دریافت UserId از Identity
 
-                if (message.trim() === "") {
-                    return; // اگر پیام خالی است، کاری انجام نده
+                if (message.trim() === "" || title.trim() === "") {
+                    return; // اگر پیام یا عنوان خالی است، کاری انجام نده
                 }
 
-                connection.invoke("SendMessageToAgent", userId, message)
+                // فراخوانی متد SendMessageToAgent با عنوان و پیام
+                connection.invoke("SendMessageToAgent", userId, title, message)
                     .then(() => {
                         const messagesDiv = document.getElementById("messages");
                         const newMessage = document.createElement("div");

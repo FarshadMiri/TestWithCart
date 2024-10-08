@@ -1,9 +1,40 @@
-﻿@{
+﻿@using TestWithValue.Domain.ViewModels.Ticket
+@model IEnumerable<TicketViewModel>
+
+@{
     ViewData["Title"] = "Support Chat";
 }
 
 <h2>Support Chat</h2>
 
+<!-- بخش نمایش لیست تیکت‌ها -->
+<div id="tickets-container">
+    <h3>لیست تیکت‌ها</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ticket ID</th>
+                <th>Title</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in Model)
+            {
+                <tr>
+                    <td>@ticket.Id</td>
+                    <td>@ticket.Title</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="selectTicket('@ticket.Id', '@ticket.UserId', '@ticket.Title')">انتخاب</button>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- بخش نمایش چت -->
 <div id="chat-container">
     <div id="messages" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc;">
         <!-- پیام‌ها در اینجا بارگذاری می‌شوند -->
@@ -20,38 +51,93 @@
             .withUrl("/supportHub") // آدرس Hub
             .build();
 
-        // دریافت پیام از هاب (همراه با ticketId)
+        // دریافت پیام از کاربر به صورت لحظه‌ای
         connection.on("ReceiveMessageFromUser", function (userId, message, ticketId) {
-            $("#messages").append(`<div><strong>کاربر ${userId}:</strong> ${message} (Ticket ID: ${ticketId})</div>`);
+            const messagesDiv = document.getElementById("messages");
 
-            // ذخیره ticketId در صورت نیاز
-            if (!window.ticketId) {
-                window.ticketId = ticketId; // ذخیره ticketId
+            // ایجاد و اضافه کردن پیام به لیست پیام‌ها
+            const newMessage = document.createElement("div");
+            newMessage.innerHTML = `<strong>کاربر ${userId}:</strong> ${message} (Ticket ID: ${ticketId})`;
+
+            // اضافه کردن قابلیت کلیک برای انتخاب تیکت
+            newMessage.style.cursor = "pointer";
+            newMessage.onclick = function () {
+                selectTicket(ticketId, userId, ticketTitle);
+            };
+
+            messagesDiv.appendChild(newMessage);
+
+            // پیدا کردن ردیف تیکت مربوطه در جدول و اضافه کردن نشانگر پیام جدید
+            const ticketRow = document.querySelector(`button[onclick*="${ticketId}"]`).closest("tr");
+            const actionCell = ticketRow.querySelector("td:last-child");
+
+            if (!actionCell.querySelector(".new-message-indicator")) {
+                const newMessageIndicator = document.createElement("span");
+                newMessageIndicator.classList.add("new-message-indicator");
+                newMessageIndicator.textContent = "پیام جدید!";
+                actionCell.appendChild(newMessageIndicator);
             }
 
-            if (!window.userId) {
-                window.userId = userId; // ذخیره userId
-            }
+            // اسکرول به پایین برای نمایش آخرین پیام
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
+
+        // دریافت تمام پیام‌های مربوط به یک تیکت پس از انتخاب
+        connection.on("ReceiveMessages", function (messages, ticketId) {
+            $("#messages").empty(); // پاک کردن پیام‌های قبلی
+            messages.forEach(function (message) {
+                $("#messages").append(`<div><strong>${message.senderId}:</strong> ${message.message} (Ticket ID: ${ticketId})</div>`);
+            });
+
+            // اسکرول به پایین برای نمایش آخرین پیام
+            const messagesDiv = document.getElementById("messages");
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+
+        // انتخاب تیکت و بارگذاری پیام‌ها
+        function selectTicket(ticketId, userId, title) {
+            window.ticketId = ticketId;
+            window.userId = userId;
+            window.ticketTitle = title; // ذخیره title
+            console.log("تیکت انتخاب شد: " + ticketId + ", کاربر: " + userId + ", عنوان: " + title);
+
+            // پاک کردن نشانگر پیام جدید بعد از انتخاب تیکت
+            const ticketRow = document.querySelector(`button[onclick*="${ticketId}"]`).closest("tr");
+            const newMessageIndicator = ticketRow.querySelector(".new-message-indicator");
+            if (newMessageIndicator) {
+                newMessageIndicator.remove();
+            }
+
+            // بارگذاری پیام‌های مربوط به تیکت انتخاب شده
+            connection.invoke("LoadMessagesForTicket", ticketId)
+                .catch(err => console.error(err));
+        }
 
         // ارسال پیام از پشتیبان به کاربر
         $("#sendMessage").click(function () {
             const message = $("#messageInput").val();
 
-            if (!window.ticketId) {
-                console.error("Ticket ID is not available.");
+            if (!window.ticketId || !window.userId || !window.ticketTitle) {
+                console.error("Ticket ID, User ID, or Ticket Title is not available.");
                 return;
             }
 
-            // ارسال پیام همراه با ticketId
-            connection.invoke("SendMessageToUser", window.userId, window.ticketId, message)
+            // ارسال پیام به سرور
+            connection.invoke("SendMessageToUser", window.userId, window.ticketId, message, window.ticketTitle)
                 .catch(err => console.error(err));
 
-            $("#messageInput").val(""); // پاک کردن input
+            // اضافه کردن پیام پشتیبان به صفحه
+            $("#messages").append(`<div><strong>شما:</strong> ${message}</div>`);
+
+            // پاک کردن input
+            $("#messageInput").val("");
+
+            // اسکرول به پایین برای نمایش آخرین پیام
+            const messagesDiv = document.getElementById("messages");
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
 
-        // شروع اتصال به Hub
+        // شروع اتصال به SignalR
         connection.start().catch(err => console.error(err));
     </script>
-
 }
