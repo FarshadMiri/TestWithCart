@@ -1,10 +1,13 @@
-﻿﻿@using TestWithValue.Domain.ViewModels.Ticket
+﻿@using Microsoft.AspNetCore.Identity
+﻿@using TestWithValue.Domain.ViewModels.Ticket
+@inject UserManager<IdentityUser> UserManager
 @model IEnumerable<TicketViewModel>
-
 @{
     ViewData["Title"] = "Support Chat";
 }
-
+@{
+    var userId = UserManager.GetUserId(User); // دریافت UserId از Identity
+}
 <h2>Support Chat</h2>
 
 <!-- بخش نمایش لیست تیکت‌ها -->
@@ -52,8 +55,10 @@
             .withUrl("/supportHub") // آدرس Hub
             .build();
 
+        const userId = '@userId'; // دریافت UserId از Identity
+
         // دریافت پیام از کاربر به صورت لحظه‌ای
-        connection.on("ReceiveMessageFromUser", function (userId, message, ticketId) {
+        connection.on("ReceiveMessageFromUser", function (userId, message, ticketId,title) {
             const messagesDiv = document.getElementById("messages");
 
             // ایجاد و اضافه کردن پیام به لیست پیام‌ها
@@ -63,7 +68,14 @@
             // اضافه کردن قابلیت کلیک برای انتخاب تیکت
             newMessage.style.cursor = "pointer";
             newMessage.onclick = function () {
-                selectTicket(ticketId, userId, ticketTitle);
+                selectTicket(ticketId, userId, title)
+                {
+                    window.ticketId = ticketId;
+                    window.userId = userId;
+                    window.ticketTitle = title;
+                };
+               
+
             };
 
             messagesDiv.appendChild(newMessage);
@@ -86,8 +98,21 @@
         // دریافت تمام پیام‌های مربوط به یک تیکت پس از انتخاب
         connection.on("ReceiveMessages", function (messages, ticketId) {
             $("#messages").empty(); // پاک کردن پیام‌های قبلی
+         
+
             messages.forEach(function (message) {
-                $("#messages").append(`<div><strong>${message.senderId}:</strong> ${message.message} (Ticket ID: ${ticketId})</div>`);
+                // تبدیل زمان به فرمت مناسب (به عنوان مثال: "HH:mm:ss" یا "yyyy-MM-dd HH:mm:ss")
+                const sentAt = new Date(message.sentAt); // فرض بر این است که message.sentAt یک رشته تاریخ است
+                const timeString = sentAt.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }); // فرمت زمان به فارسی
+
+                // اگر فرستنده پیام همان کاربر فعلی باشد
+                if (message.senderId === userId) {
+                    $("#messages").append(`<div style="text-align: right;"><strong>شما:</strong> ${message.message} (Ticket ID: ${ticketId}) <span style="font-size: 0.8em;">(${timeString})</span></div>`);
+                } 
+                else {
+                    // برای دیگر فرستنده‌ها (مثل پشتیبان‌های دیگر یا سیستم)
+                    $("#messages").append(`<div style="text-align: left;"><strong>کاربر:</strong> ${message.message} (Ticket ID: ${ticketId}) <span style="font-size: 0.8em;">(${timeString})</span></div>`);
+                }
             });
 
             // اسکرول به پایین برای نمایش آخرین پیام

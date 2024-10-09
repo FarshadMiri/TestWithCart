@@ -181,10 +181,10 @@ namespace TestWithValue.Web.HubSupport
             await _ticketService.SaveMessageAsync(ticketId, userId, message);
 
             // ارسال پیام به گروه پشتیبان‌ها
-            await Clients.Group("Agent").SendAsync("ReceiveMessageFromUser", userId, message, ticketId);
+            await Clients.Group("Agent").SendAsync("ReceiveMessageFromUser", userId, message, ticketId,title);
         }
 
-        public async Task SendMessageToUser(string userId, int ticketId, string message, string ticketTitle)
+        public async Task SendMessageToUser(string userId, string ticketId, string message, string ticketTitle)
         {
             var agentId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -204,13 +204,13 @@ namespace TestWithValue.Web.HubSupport
             await Clients.User(userId).SendAsync("ReceiveMessageFromAgent", agentId, message, ticketId);
 
             // ذخیره پیام در دیتابیس
-            await _ticketService.SaveMessageAsync(ticketId, agentId, message);
+            await _ticketService.SaveMessageAsync(Convert.ToInt32( ticketId), agentId, message);
         }
 
         [HttpGet]
-        public async Task LoadMessagesForTicket(int ticketId)
+        public async Task LoadMessagesForTicket(string ticketId)
         {
-            var messages = await _ticketService.GetMessagesByTicketIdAsync(ticketId);
+            var messages = await _ticketService.GetMessagesByTicketIdAsync(Convert.ToInt32( ticketId));
             await Clients.Caller.SendAsync("ReceiveMessages", messages, ticketId);
         }
 
