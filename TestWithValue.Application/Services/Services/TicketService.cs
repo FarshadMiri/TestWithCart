@@ -25,20 +25,15 @@ public class TicketService : ITicketService
             TicketStatusId = (int)TicketStatus.Open // وضعیت اولیه تیکت
         };
 
-      var tickets= await  _ticketRepository.CreateTicketAsync(ticket);
-        
-    }
+        var tickets = await _ticketRepository.CreateTicketAsync(ticket);
 
-    public async Task UpdateTicketStatusAsync(int ticketId, TicketStatus status)
-    {
-        await _ticketRepository.UpdateTicketStatusAsync(ticketId, (int)status); // بروزرسانی وضعیت تیکت
     }
 
     public async Task SaveMessageAsync(int ticketId, string senderId, string message)
     {
         var ticketMessage = new Tbl_TicketMessage
         {
-             TicketId= ticketId,
+            TicketId = ticketId,
             SenderId = senderId,
             Message = message,
             SentAt = DateTime.Now
@@ -77,12 +72,12 @@ public class TicketService : ITicketService
 
     public async Task<TicketViewModel> GetOpenTicketForUserByTitleAsync(string userId, string title)
     {
-        var ticket= await _ticketRepository.GetOpenTicketForUserByTitleAsync(userId,title);
-        var ticketVM=_mapper.Map<TicketViewModel>(ticket);
+        var ticket = await _ticketRepository.GetOpenTicketForUserByTitleAsync(userId, title);
+        var ticketVM = _mapper.Map<TicketViewModel>(ticket);
         return ticketVM;
     }
 
-    public  async Task<IEnumerable<TicketViewModel>> GetAllTicketsAsync()
+    public async Task<IEnumerable<TicketViewModel>> GetAllTicketsAsync()
     {
         var tickets = await _ticketRepository.GetAllTicketsAsync();
         return _mapper.Map<List<TicketViewModel>>(tickets);
@@ -93,16 +88,60 @@ public class TicketService : ITicketService
         var messages = await _ticketRepository.GetMessagesByTicketIdAsync(ticketId);
         return messages.Select(msg => new TicketMessageViewModel
         {
-             SenderId = msg.SenderId,
-             Message = msg.Message,
+            SenderId = msg.SenderId,
+            Message = msg.Message,
             SentAt = msg.SentAt
         });
     }
 
     public async Task<TicketViewModel> GetOpenTicketForUserAsync(string userId)
     {
-        var ticket =  await _ticketRepository.GetOpenTicketForUserAsync(userId);
+        var ticket = await _ticketRepository.GetOpenTicketForUserAsync(userId);
         var ticketVM = _mapper.Map<TicketViewModel>(ticket);
         return ticketVM;
+    }
+
+    public async Task<bool> CloseTicketAsync(int ticketId)
+    {
+        var ticket = await _ticketRepository.GetTicketByIdAsync(ticketId);
+        if (ticket == null)
+            return false;
+
+        // بررسی وضعیت تیکت اگر بسته است
+        if (ticket.TicketStatusId == (int)TicketStatus.Closed)
+            return false;
+
+        // تغییر وضعیت تیکت به بسته
+        ticket.TicketStatusId = (int)TicketStatus.Closed;
+        _ticketRepository.UpdateTicket(ticket);
+
+
+        return true;
+    }
+
+
+    public async Task<TicketViewModel> GetTicketByIdAsync(int ticketId)
+    {
+        var ticket = await _ticketRepository.GetTicketByIdAsync(ticketId);
+        var ticketVM = _mapper.Map<TicketViewModel>(ticket);
+        return ticketVM;
+
+    }
+
+    public async Task<IEnumerable<TicketViewModel>> GetAllTicketsByUserIdAsync(string userId)
+    {
+        var tickets = await _ticketRepository.GetTicketsByUserIdAsync(userId);
+
+        // تبدیل Tbl_Ticket به TicketViewModel
+        var ticketViewModels = tickets.Select(ticket => new TicketViewModel
+        {
+            Id = ticket.Id,
+            Title = ticket.Title,
+            Description = ticket.Description,
+            UserId = ticket.UserId,
+            IsClosed = ticket.TicketStatusId == (int)TicketStatus.Closed // یا بررسی وضعیت بستن تیکت
+        }).ToList();
+
+        return ticketViewModels;
     }
 }

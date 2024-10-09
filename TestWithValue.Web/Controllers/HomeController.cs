@@ -1,7 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 using TestWithValue.Application.Services.Services.OperationResultService;
+using TestWithValue.Application.Services.Services_Interface;
 using TestWithValue.Application.Services.Services_Interface.ActionMessage_s_Interface;
+using TestWithValue.Domain.ViewModels.Ticket;
 using TestWithValue.Web.Models;
 
 namespace TestWithValue.Web.Controllers
@@ -10,18 +13,20 @@ namespace TestWithValue.Web.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IActionMessageService _actionMessageService;
-        public HomeController(ILogger<HomeController> logger, IActionMessageService actionMessageService)
+        private readonly ITicketService _ticketService;
+        public HomeController(ILogger<HomeController> logger, IActionMessageService actionMessageService, ITicketService ticketService)
         {
             _logger = logger;
             _actionMessageService = actionMessageService;
+            _ticketService = ticketService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            //_actionMessageService.AddMessage("Welcome to the homepage!", "success");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // دریافت UserId از Identity
+            var tickets = await _ticketService.GetAllTicketsByUserIdAsync(userId); // دریافت لیست تیکت‌ها
 
-
-            return View();
+            return View(tickets); // ارسال لیست تیکت‌ها به ویو
         }
 
         public IActionResult Privacy()
@@ -34,5 +39,7 @@ namespace TestWithValue.Web.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+       
+
     }
 }

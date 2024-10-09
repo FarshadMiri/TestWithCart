@@ -213,5 +213,26 @@ namespace TestWithValue.Web.HubSupport
             var messages = await _ticketService.GetMessagesByTicketIdAsync(ticketId);
             await Clients.Caller.SendAsync("ReceiveMessages", messages, ticketId);
         }
+
+        public async Task<object> CloseTicket(string ticketId)
+        {
+            var ticket = await _ticketService.GetTicketByIdAsync(Convert.ToInt32(ticketId));
+
+            if (ticket == null)
+            {
+                return new { success = false, message = "تیکت پیدا نشد." };
+            }
+
+            if (ticket.IsClosed)
+            {
+                return new { success = false, message = "این تیکت قبلاً بسته شده است." };
+            }
+
+            // بستن تیکت
+            ticket.IsClosed = true;
+            await _ticketService.CloseTicketAsync(ticket.Id);
+
+            return new { success = true, message = "تیکت با موفقیت بسته شد." };
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿@using TestWithValue.Domain.ViewModels.Ticket
+﻿﻿@using TestWithValue.Domain.ViewModels.Ticket
 @model IEnumerable<TicketViewModel>
 
 @{
@@ -26,6 +26,7 @@
                     <td>@ticket.Title</td>
                     <td>
                         <button class="btn btn-primary" onclick="selectTicket('@ticket.Id', '@ticket.UserId', '@ticket.Title')">انتخاب</button>
+                        <button class="btn btn-danger" onclick="closeTicket('@ticket.Id')">بستن تیکت</button>
                     </td>
 
                 </tr>
@@ -136,6 +137,27 @@
             const messagesDiv = document.getElementById("messages");
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
+
+        function closeTicket(ticketId) {
+            if (!confirm("آیا مطمئن هستید که می‌خواهید این تیکت را ببندید؟")) {
+                return;
+            }
+
+            // فراخوانی متد سرور برای بررسی وضعیت تیکت و بستن آن
+            connection.invoke("CloseTicket", ticketId)
+                .then(function (result) {
+                    if (result.success) {
+                        alert("تیکت بسته شد.");
+                        // می‌توانید تیکت را از لیست حذف کنید یا آن را به‌عنوان بسته شده علامت‌گذاری کنید
+                        document.querySelector(`button[onclick*="${ticketId}"]`).closest("tr").style.opacity = 0.5;
+                    } else {
+                        alert(result.message); // نمایش پیام خطا
+                    }
+                })
+                .catch(function (err) {
+                    console.error(err.toString());
+                });
+        }
 
         // شروع اتصال به SignalR
         connection.start().catch(err => console.error(err));

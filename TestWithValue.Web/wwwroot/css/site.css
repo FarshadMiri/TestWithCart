@@ -44,3 +44,11 @@ button {
     button:hover {
         background-color: #218838;
     }
+.new-message-indicator {
+    background-color: red;
+    color: white;
+    padding: 2px 5px;
+    margin-left: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+}

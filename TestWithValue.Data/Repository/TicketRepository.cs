@@ -37,15 +37,7 @@ namespace TestWithValue.Persistence.Repositories
            
         }
 
-        public async Task UpdateTicketStatusAsync(int ticketId, int statusId)
-        {
-            var ticket = await _context.tbl_Tickets.FindAsync(ticketId); // یافتن تیکت براساس ID
-            if (ticket != null)
-            {
-                ticket.TicketStatusId = statusId; // تغییر وضعیت تیکت
-                await _context.SaveChangesAsync(); // ذخیره تغییرات
-            }
-        }
+        
 
         public async Task SaveMessageAsync(Tbl_TicketMessage ticketMessage)
         {
@@ -102,6 +94,22 @@ namespace TestWithValue.Persistence.Repositories
         {
             return await _context.tbl_Tickets
         .FirstOrDefaultAsync(t => t.UserId == userId && t.TicketStatusId == (int)TicketStatus.Open);
+        }
+
+       
+
+        public void UpdateTicket(Tbl_Ticket ticket)
+        {
+            _context.tbl_Tickets.Update(ticket);
+            _context.SaveChanges(); 
+
+        }
+
+        public async Task<IEnumerable<Tbl_Ticket>> GetTicketsByUserIdAsync(string userId)
+        {
+            return await _context.tbl_Tickets
+                             .Where(t => t.UserId == userId)
+                             .ToListAsync();
         }
     }
 }
